@@ -6,10 +6,11 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 interface StyleQuizProps {
-  onComplete: () => void;
+  onComplete?: () => void;
+  onBack?: () => void;
 }
 
-const StyleQuiz = ({ onComplete }: StyleQuizProps) => {
+const StyleQuiz = ({ onComplete, onBack }: StyleQuizProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
 
@@ -117,6 +118,15 @@ const StyleQuiz = ({ onComplete }: StyleQuizProps) => {
 
   return (
     <div className="min-h-screen bg-subtle-gradient flex items-center justify-center p-4">
+      {/* Header with back button */}
+      {onBack && (
+        <div className="fixed top-4 left-4 z-10">
+          <Button variant="ghost" size="icon" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+      
       <div className="w-full max-w-2xl">
         <Card className="border-0 shadow-hero">
           <CardHeader className="text-center pb-6">
