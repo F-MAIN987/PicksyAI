@@ -173,7 +173,8 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
               >
                 <p className="text-sm">{message.content}</p>
                 
-                {message.products && (
+                {/* Only show product cards and actions when there are products */}
+                {message.products && message.products.length > 0 && (
                   <div className="mt-6 space-y-4">
                     <div className="grid gap-4">
                       {message.products.map((product) => (
