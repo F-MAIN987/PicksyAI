@@ -87,7 +87,7 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
       const { data, error } = await supabase.functions.invoke('chat-with-gemini', {
         body: {
           message: currentInput,
-          products: allProducts.slice(0, 10) // Send subset for context
+          products: allProducts // Send all products for filtering
         }
       });
 
@@ -180,9 +180,20 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
                         <Card key={product.id} className="border-0 shadow-card hover:shadow-glow transition-all">
                           <CardContent className="p-4">
                             <div className="flex gap-4">
-                              <div className="w-20 h-24 bg-hero-gradient rounded-lg flex items-center justify-center shrink-0 relative overflow-hidden">
-                                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-                                <ShoppingBag className="w-8 h-8 text-white relative z-10" />
+                              <div className="w-20 h-24 bg-muted rounded-lg overflow-hidden shrink-0">
+                                <img 
+                                  src={product.image} 
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.nextElementSibling!.classList.remove('hidden');
+                                  }}
+                                />
+                                <div className="hidden w-full h-full bg-hero-gradient flex items-center justify-center">
+                                  <ShoppingBag className="w-8 h-8 text-white" />
+                                </div>
                               </div>
                               
                               <div className="flex-1 space-y-2">

@@ -16,18 +16,27 @@ serve(async (req) => {
   try {
     const { message, products } = await req.json();
 
-    const systemPrompt = `You are AURA, a friendly AI shopping assistant. Help users find products that match their style and preferences. 
+    // Find relevant products based on user message
+    const relevantProducts = products.filter((product: any) => {
+      const searchTerms = message.toLowerCase();
+      const productText = `${product.name} ${product.category}`.toLowerCase();
+      return searchTerms.split(' ').some((term: string) => 
+        productText.includes(term) || 
+        product.category.toLowerCase().includes(term)
+      );
+    });
 
-Available products: ${JSON.stringify(products)}
+    const systemPrompt = `You are AURA, a helpful shopping assistant. The user asked: "${message}"
 
-Guidelines:
-- Recommend 2-3 products maximum per response
-- Explain why each product fits their request (1 sentence)
+Available products that match their request: ${JSON.stringify(relevantProducts.slice(0, 3))}
+
+Instructions:
+- Only recommend products from the provided list that are relevant to their question
+- If no products match, say you couldn't find matching items and ask them to be more specific
+- Explain briefly why each recommended product fits their request
 - Be conversational and helpful
-- If no products match, suggest alternatives or ask clarifying questions
-- Format your response as natural conversation, not JSON
-
-User message: ${message}`;
+- Do NOT use any external knowledge about products not in the list
+- Maximum 2-3 product recommendations per response`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -58,7 +67,7 @@ User message: ${message}`;
 
     return new Response(JSON.stringify({ 
       content: generatedText,
-      products: products.slice(0, 3) // Return max 3 products
+      products: relevantProducts.slice(0, 3) // Return only relevant products
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
