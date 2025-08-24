@@ -110,5 +110,24 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    background-image: url('./assets/hero-image.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+  
+  /* Add an overlay to ensure text readability */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: hsl(var(--background) / 0.85);
+    backdrop-filter: blur(2px);
+    z-index: -1;
+    pointer-events: none;
   }
 }
