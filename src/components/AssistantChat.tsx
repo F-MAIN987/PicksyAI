@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Send, ShoppingBag, Heart, Clock, Star } from "lucide-react";
+import { ArrowLeft, Send, Heart, Clock, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getProductsByCategory, type Product as StoreProduct } from "@/lib/fakestore";
@@ -36,7 +36,6 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [cart, setCart] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -58,7 +57,7 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
       const welcomeMessage: Message = {
         id: "welcome",
         type: "assistant",
-        content: "Hi! I'm AURA, your personal shopping assistant. I can help you find clothes that match your style, budget, and needs. What are you looking for today?",
+        content: "Hi! I'm AURA, your personal style and fashion advisor. I can help you with style tips, fashion advice, outfit ideas, and answer questions about clothing, trends, and personal styling. What would you like to know?",
         timestamp: new Date()
       };
       setMessages([welcomeMessage]);
@@ -117,21 +116,6 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
     }
   };
 
-  const addToCart = (product: Product) => {
-    setCart(prev => [...prev, product]);
-    toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
-    });
-  };
-
-  const addAllToCart = (products: Product[]) => {
-    setCart(prev => [...prev, ...products]);
-    toast({
-      title: "All items added",
-      description: `${products.length} items added to your cart.`,
-    });
-  };
 
   return (
     <div className="min-h-screen bg-subtle-gradient">
@@ -146,12 +130,6 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
               <h1 className="font-semibold">AURA Assistant</h1>
               <p className="text-sm text-muted-foreground">Your personal stylist</p>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <ShoppingBag className="w-4 h-4 mr-2" />
-              Cart ({cart.length})
-            </Button>
           </div>
         </div>
       </div>
@@ -193,7 +171,7 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
                                   }}
                                 />
                                 <div className="hidden w-full h-full bg-hero-gradient flex items-center justify-center">
-                                  <ShoppingBag className="w-8 h-8 text-white" />
+                                  <Heart className="w-8 h-8 text-white" />
                                 </div>
                               </div>
                               
@@ -222,16 +200,6 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
                                 <p className="text-xs text-muted-foreground">
                                   {product.why}
                                 </p>
-                                
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => addToCart(product)}
-                                  className="w-full"
-                                >
-                                  <Heart className="w-3 h-3 mr-2" />
-                                  Add to Cart
-                                </Button>
                               </div>
                             </div>
                           </CardContent>
@@ -239,22 +207,6 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
                       ))}
                     </div>
                     
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        size="sm"
-                        onClick={() => addAllToCart(message.products!)}
-                        className="flex-1"
-                      >
-                        Add All to Cart
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                      >
-                        Refine
-                      </Button>
-                    </div>
                   </div>
                 )}
               </div>
@@ -285,7 +237,7 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Tell me what you're looking for..."
+              placeholder="Ask me about style, fashion, or clothing advice..."
               onKeyPress={(e) => e.key === "Enter" && handleSend()}
               className="flex-1"
             />
