@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -15,129 +15,136 @@ serve(async (req) => {
 
   try {
     const { message, products } = await req.json();
-
-    // Check if the message is asking for fashion advice or product recommendations
-    const fashionKeywords = [
-      'outfit', 'style', 'fashion', 'clothes', 'wear', 'dress', 'shirt', 'pants', 'shoes',
-      'look', 'recommend', 'suggest', 'buy', 'shopping', 'color', 'match', 'size',
-      'occasion', 'formal', 'casual', 'work', 'party', 'date', 'wedding', 'trend',
-      'wardrobe', 'accessory', 'jewelry', 'bag', 'jacket', 'coat', 'jeans', 'dress up'
-    ];
-
-    const isFashionQuery = fashionKeywords.some(keyword => 
-      message.toLowerCase().includes(keyword)
-    );
-
-    // Only find relevant products if it's a fashion-related query
-    let relevantProducts = [];
-    if (isFashionQuery) {
-      relevantProducts = products.filter((product: any) => {
-        const searchTerms = message.toLowerCase();
-        const productText = `${product.name} ${product.category}`.toLowerCase();
-        return searchTerms.split(' ').some((term: string) => 
-          productText.includes(term) || 
-          product.category.toLowerCase().includes(term)
-        );
-      });
+    
+    // Get GEMINI_API_KEY from environment
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY not found in environment');
+      throw new Error('GEMINI_API_KEY not configured');
     }
 
-    // Smart shopping assistant system prompt for Gemini
-    const systemPrompt = `You are AURA, a smart shopping assistant and expert fashion advisor with advanced AI capabilities. You provide personalized, fresh, and diverse product recommendations tailored to each user's unique preferences, budget, and style.
+    console.log('Processing message:', message);
 
-CORE CAPABILITIES:
-- Suggest 5-7 carefully curated products from different categories and brands
-- Avoid repeating recently suggested products to maintain freshness
-- Consider user location, seasonality, and current shopping trends
-- Learn from user feedback (likes/dislikes) to improve future recommendations
-- Engage users with clarifying questions to personalize the experience
+    // Fashion-related keywords for product filtering
+    const fashionKeywords = [
+      'style', 'fashion', 'outfit', 'wear', 'clothing', 'dress', 'shirt', 'pants', 'shoes', 
+      'jacket', 'accessories', 'bag', 'jewelry', 'wardrobe', 'trendy', 'casual', 'formal',
+      'color', 'size', 'fit', 'brand', 'material', 'fabric', 'season', 'occasion',
+      'shopping', 'buy', 'purchase', 'recommend', 'suggest', 'look', 'appearance'
+    ];
 
-EXPERTISE AREAS:
-- Current fashion trends and seasonal styles
-- Color coordination and styling principles
-- Different body types and how to dress them
-- Occasion-appropriate dressing
-- Budget-friendly fashion solutions
-- Sustainable and ethical fashion choices
-- Cross-category styling and mix-and-match recommendations
+    // Check if the message is fashion-related
+    const isFashionQuery = fashionKeywords.some(keyword => 
+      message.toLowerCase().includes(keyword.toLowerCase())
+    );
 
-ENGAGEMENT STRATEGY:
-- Always ask clarifying questions like "What style or category are you interested in today?" or "Do you have a budget in mind?"
-- Personalize recommendations based on user's specific needs and constraints
-- Provide styling tips and combination suggestions
-- Be encouraging, warm, and confidence-building
-- Follow up on user preferences to refine future suggestions
+    let relevantProducts = [];
+    let systemPrompt = `You are PicksyAI, a friendly and intelligent AI assistant. You can help with a wide variety of topics and questions. Be conversational, helpful, and engaging in your responses.
 
-CONVERSATION GUIDELINES:
-- For general greetings, casual questions, or non-fashion topics: Respond naturally and warmly, but do NOT suggest any products
-- For fashion-related questions: Provide expert styling advice and 5-7 diverse product recommendations when appropriate
-- Always be friendly and engaging regardless of the topic
+Key guidelines:
+- Be natural and conversational in your responses
+- If users ask about fashion, style, or shopping, you can recommend products when relevant
+- For general questions, provide helpful and informative answers
+- Keep responses concise but comprehensive
+- Be encouraging and positive in your tone
+- If you don't know something, be honest about it
 
-Available products for recommendations:
-${JSON.stringify(relevantProducts, null, 2)}
+Respond naturally to whatever the user asks about.`;
 
-RECOMMENDATION GUIDELINES (only for fashion queries):
-- When suggesting products, aim for 5-7 diverse items from different categories
-- Include mix of price points unless user specifies budget
-- Consider seasonal appropriateness and current trends
-- Avoid suggesting the same products repeatedly
-- Only recommend products that are truly relevant to their specific question or need
-- Present products with clear reasons why they match the user's style/needs
-- Ask follow-up questions to better understand preferences
+    // If it's a fashion query and we have products, filter relevant ones
+    if (isFashionQuery && products && products.length > 0) {
+      // Simple relevance filtering based on message content
+      relevantProducts = products.filter(product => {
+        const searchTerms = message.toLowerCase().split(' ');
+        const productText = `${product.name} ${product.category} ${product.why}`.toLowerCase();
+        return searchTerms.some(term => productText.includes(term)) || 
+               fashionKeywords.some(keyword => productText.includes(keyword));
+      }).slice(0, 3); // Limit to 3 most relevant products
 
-User's message: "${message}"
-Is this a fashion-related query: ${isFashionQuery}
+      systemPrompt = `You are PicksyAI, a friendly AI fashion and shopping assistant. The user is asking about fashion, style, or shopping.
 
-RESPONSE APPROACH:
-- If NOT fashion-related: Respond naturally without mentioning products or shopping
-- If fashion-related: Ask clarifying questions, then provide personalized recommendations with detailed explanations
-- Always explain why each recommendation fits their needs
-- Encourage user engagement with follow-up questions
-- Build confidence and help develop personal style
+${relevantProducts.length > 0 ? `Here are some relevant products that might help:
+${relevantProducts.map(p => `- ${p.name} (${p.price}) - ${p.why}`).join('\n')}
 
-Remember: You're a smart shopping assistant who provides personalized, diverse recommendations. Only suggest products for fashion-related queries, and always engage users to understand their preferences better.`;
+When recommending products, explain why they would be good for the user's specific needs.` : ''}
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: systemPrompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1024,
-        }
-      }),
-    });
+Key guidelines:
+- Be conversational and helpful
+- Provide fashion advice and styling tips
+- Recommend products when they match the user's needs
+- Explain your reasoning for recommendations
+- Be encouraging about their style choices
+- Keep responses engaging and not too long`;
+    }
+
+    // Make request to Gemini API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: systemPrompt },
+                { text: `User message: ${message}` }
+              ]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 500,
+          }
+        })
+      }
+    );
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Gemini API error:', errorText);
       throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm having trouble processing your request right now.";
+    console.log('Gemini response:', data);
 
-    return new Response(JSON.stringify({ 
-      content: generatedText,
-      products: isFashionQuery ? relevantProducts.slice(0, 7) : [] // Return up to 7 products for fashion queries
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    // Extract the generated text
+    let generatedContent = "I'm having trouble processing your request right now. Please try again!";
+    
+    if (data.candidates && data.candidates[0] && 
+        data.candidates[0].content && data.candidates[0].content.parts && 
+        data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text) {
+      generatedContent = data.candidates[0].content.parts[0].text;
+    }
+
+    // Return response with content and products (if fashion-related)
+    return new Response(
+      JSON.stringify({
+        content: generatedContent,
+        products: isFashionQuery ? relevantProducts : []
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
 
   } catch (error) {
     console.error('Error in chat-with-gemini function:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to process request',
-      content: "I'm having trouble right now. Please try again!" 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    
+    // Return a more helpful error response
+    return new Response(
+      JSON.stringify({
+        error: 'Failed to process request',
+        content: "I'm having trouble right now. Please try again!",
+        products: []
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
