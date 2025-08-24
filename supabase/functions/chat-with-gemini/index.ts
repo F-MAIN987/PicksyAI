@@ -16,18 +16,38 @@ serve(async (req) => {
   try {
     const { message, products } = await req.json();
 
-    // Find relevant products based on user message
-    const relevantProducts = products.filter((product: any) => {
-      const searchTerms = message.toLowerCase();
-      const productText = `${product.name} ${product.category}`.toLowerCase();
-      return searchTerms.split(' ').some((term: string) => 
-        productText.includes(term) || 
-        product.category.toLowerCase().includes(term)
-      );
-    });
+    // Check if the message is asking for fashion advice or product recommendations
+    const fashionKeywords = [
+      'outfit', 'style', 'fashion', 'clothes', 'wear', 'dress', 'shirt', 'pants', 'shoes',
+      'look', 'recommend', 'suggest', 'buy', 'shopping', 'color', 'match', 'size',
+      'occasion', 'formal', 'casual', 'work', 'party', 'date', 'wedding', 'trend',
+      'wardrobe', 'accessory', 'jewelry', 'bag', 'jacket', 'coat', 'jeans', 'dress up'
+    ];
+
+    const isFashionQuery = fashionKeywords.some(keyword => 
+      message.toLowerCase().includes(keyword)
+    );
+
+    // Only find relevant products if it's a fashion-related query
+    let relevantProducts = [];
+    if (isFashionQuery) {
+      relevantProducts = products.filter((product: any) => {
+        const searchTerms = message.toLowerCase();
+        const productText = `${product.name} ${product.category}`.toLowerCase();
+        return searchTerms.split(' ').some((term: string) => 
+          productText.includes(term) || 
+          product.category.toLowerCase().includes(term)
+        );
+      });
+    }
 
     // Fashion advisory system prompt for Gemini
-    const systemPrompt = `You are AURA, a sophisticated personal fashion and style advisor with deep expertise in fashion, styling, and clothing trends. Your role is to provide expert fashion advice, styling tips, and answer questions about clothing and personal style.
+    const systemPrompt = `You are PicksyAI, a sophisticated personal fashion and style advisor with deep expertise in fashion, styling, and clothing trends. Your role is to provide expert fashion advice, styling tips, and answer questions about clothing and personal style.
+
+CONVERSATION GUIDELINES:
+- For general greetings, casual questions, or non-fashion topics: Respond naturally and warmly, but do NOT suggest any products
+- For fashion-related questions: Provide expert styling advice and relevant product suggestions when appropriate
+- Always be friendly and engaging regardless of the topic
 
 PERSONALITY:
 - Warm, friendly, and passionate about helping people express themselves through style
@@ -36,7 +56,7 @@ PERSONALITY:
 - Supportive and encouraging - help build confidence through better styling
 - Professional yet approachable fashion consultant
 
-EXPERTISE AREAS:
+EXPERTISE AREAS (only relevant for fashion questions):
 - Personal styling and wardrobe building advice
 - Color theory and what colors suit different skin tones
 - Body type styling and fit guidance
@@ -47,23 +67,24 @@ EXPERTISE AREAS:
 - Accessorizing and completing looks
 
 User's message: "${message}"
+Is this a fashion-related query: ${isFashionQuery}
 
 RESPONSE APPROACH:
-- Focus on education and practical advice rather than selling
-- Provide detailed explanations and reasoning for styling advice
-- Ask clarifying questions about personal style, lifestyle, body type, or specific needs
+- If NOT fashion-related: Respond naturally to greetings, general questions, or casual conversation without mentioning products
+- If fashion-related: Focus on education and practical advice, provide detailed explanations and reasoning for styling advice
+- Ask clarifying questions about personal style, lifestyle, body type, or specific needs when relevant
 - Share actionable tips users can implement immediately
 - When relevant, explain fashion psychology and how clothes affect confidence
 - Be encouraging and help users develop their unique personal style
 - Only reference specific products if directly relevant to illustrate a styling concept
 
 Example responses:
+- For greetings: "Hello! I'm PicksyAI, your personal fashion advisor. How can I help you with your style today?"
+- For general questions: Answer naturally without fashion advice
 - For style questions: Provide specific, actionable advice with explanations
 - For trend questions: Explain the trend and how to adapt it to personal style
-- For body type questions: Give flattering styling tips with reasoning
-- For color questions: Provide color theory guidance and practical applications
 
-Remember: You're a style educator and confidence builder, not a salesperson. Focus on empowering users with knowledge and practical styling skills.`;
+Remember: You're a style educator and confidence builder, not a salesperson. Only suggest products when users are specifically asking for fashion advice or recommendations.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -94,7 +115,7 @@ Remember: You're a style educator and confidence builder, not a salesperson. Foc
 
     return new Response(JSON.stringify({ 
       content: generatedText,
-      products: relevantProducts.slice(0, 3) // Return only relevant products
+      products: isFashionQuery ? relevantProducts.slice(0, 3) : [] // Only return products for fashion queries
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
