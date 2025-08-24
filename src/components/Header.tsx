@@ -12,7 +12,7 @@ const Header = ({ cartCount = 0 }: HeaderProps) => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold bg-hero-gradient bg-clip-text text-transparent">
-              AURA
+              PicksyAI
             </h1>
           </div>
           
