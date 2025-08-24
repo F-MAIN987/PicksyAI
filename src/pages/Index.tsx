@@ -96,7 +96,7 @@ const Index = () => {
       <section className="py-20 bg-subtle-gradient">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Why Choose AURA?</h2>
+            <h2 className="text-4xl font-bold mb-4">Why Choose PicksyAI?</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Experience the future of personal styling with our AI-powered fashion advisor
             </p>
@@ -206,7 +206,7 @@ const Index = () => {
               {
                 name: "Sarah Thompson",
                 role: "Fashion Enthusiast",
-                content: "AURA completely transformed my wardrobe! The AI gives incredibly personalized advice.",
+                content: "PicksyAI completely transformed my wardrobe! The AI gives incredibly personalized advice.",
                 rating: 5
               },
               {
@@ -218,7 +218,7 @@ const Index = () => {
               {
                 name: "Emma Rodriguez",
                 role: "Creative Director",
-                content: "Love how AURA understands my unique style and helps me express it better.",
+                content: "Love how PicksyAI understands my unique style and helps me express it better.",
                 rating: 5
               }
             ].map((testimonial, index) => (
@@ -247,7 +247,7 @@ const Index = () => {
           <div className="bg-hero-gradient rounded-3xl p-12 text-center text-white">
             <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Style?</h2>
             <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-              Join thousands of fashion-forward individuals who trust AURA for their styling needs.
+              Join thousands of fashion-forward individuals who trust PicksyAI for their styling needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -277,7 +277,7 @@ const Index = () => {
       <footer className="py-12 border-t bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h3 className="text-2xl font-bold bg-hero-gradient bg-clip-text text-transparent mb-4">AURA</h3>
+            <h3 className="text-2xl font-bold bg-hero-gradient bg-clip-text text-transparent mb-4">PicksyAI</h3>
             <p className="text-muted-foreground mb-6">Your AI-powered personal fashion stylist</p>
             <div className="flex justify-center gap-8 text-sm text-muted-foreground">
               <span>Privacy Policy</span>

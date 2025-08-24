@@ -57,7 +57,7 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
       const welcomeMessage: Message = {
         id: "welcome",
         type: "assistant",
-        content: "Hi! I'm AURA, your personal style and fashion advisor. I can help you with style tips, fashion advice, outfit ideas, and answer questions about clothing, trends, and personal styling. What would you like to know?",
+        content: "Hi! I'm PicksyAI, your personal style and fashion advisor. I can help you with style tips, fashion advice, outfit ideas, and answer questions about clothing, trends, and personal styling. What would you like to know?",
         timestamp: new Date()
       };
       setMessages([welcomeMessage]);
@@ -127,7 +127,7 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h1 className="font-semibold">AURA Assistant</h1>
+              <h1 className="font-semibold">PicksyAI Assistant</h1>
               <p className="text-sm text-muted-foreground">Your personal stylist</p>
             </div>
           </div>
@@ -220,7 +220,7 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
                   <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
                   <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
                   <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                  <span className="text-sm text-muted-foreground ml-2">AURA is thinking...</span>
+                  <span className="text-sm text-muted-foreground ml-2">PicksyAI is thinking...</span>
                 </div>
               </div>
             </div>
