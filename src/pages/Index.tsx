@@ -167,14 +167,14 @@ const Index = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {sampleProducts.map((product, index) => (
               <Card key={index} className="group cursor-pointer overflow-hidden border-0 shadow-card hover:shadow-glow transition-all duration-300">
-                <div className="aspect-[4/5] bg-muted relative overflow-hidden">
+                  <div className="aspect-[4/5] bg-muted relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="w-full h-full bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
+                  <div className="w-full h-full bg-hero-gradient flex items-center justify-center">
                     <div className="text-center p-4">
-                      <div className="w-16 h-16 bg-hero-gradient rounded-full mx-auto mb-3 flex items-center justify-center">
+                      <div className="w-16 h-16 bg-background/20 backdrop-blur-sm rounded-full mx-auto mb-3 flex items-center justify-center border border-white/20">
                         <ShoppingBag className="w-8 h-8 text-white" />
                       </div>
-                      <p className="text-sm font-medium">{product.name}</p>
+                      <p className="text-sm font-medium text-white">{product.name}</p>
                     </div>
                   </div>
                 </div>

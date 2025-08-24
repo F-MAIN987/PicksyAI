@@ -181,8 +181,9 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
                         <Card key={product.id} className="border-0 shadow-card hover:shadow-glow transition-all">
                           <CardContent className="p-4">
                             <div className="flex gap-4">
-                              <div className="w-20 h-24 bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg flex items-center justify-center shrink-0">
-                                <ShoppingBag className="w-8 h-8 text-primary" />
+                              <div className="w-20 h-24 bg-hero-gradient rounded-lg flex items-center justify-center shrink-0 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+                                <ShoppingBag className="w-8 h-8 text-white relative z-10" />
                               </div>
                               
                               <div className="flex-1 space-y-2">
