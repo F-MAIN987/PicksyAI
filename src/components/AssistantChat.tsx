@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Send, ShoppingBag, Heart, Clock, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { getProductsByCategory, type Product as StoreProduct } from "@/lib/fakestore";
 
 interface AssistantChatProps {
   onBack: () => void;
@@ -27,6 +29,7 @@ interface Product {
   rating: number;
   inStock: boolean;
   eta: string;
+  category: string;
 }
 
 const AssistantChat = ({ onBack }: AssistantChatProps) => {
@@ -34,6 +37,7 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [cart, setCart] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -46,51 +50,26 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
   }, [messages]);
 
   useEffect(() => {
-    // Initial welcome message
-    const welcomeMessage: Message = {
-      id: "welcome",
-      type: "assistant",
-      content: "Hi! I'm AURA, your personal shopping assistant. I can help you find clothes that match your style, budget, and needs. What are you looking for today?",
-      timestamp: new Date()
+    // Load products and initial welcome message
+    const initializeChat = async () => {
+      const products = await getProductsByCategory();
+      setAllProducts(products);
+      
+      const welcomeMessage: Message = {
+        id: "welcome",
+        type: "assistant",
+        content: "Hi! I'm AURA, your personal shopping assistant. I can help you find clothes that match your style, budget, and needs. What are you looking for today?",
+        timestamp: new Date()
+      };
+      setMessages([welcomeMessage]);
     };
-    setMessages([welcomeMessage]);
+    
+    initializeChat();
   }, []);
 
-  const mockProducts: Product[] = [
-    {
-      id: "1",
-      name: "Relaxed Fit Cargo Pants",
-      price: "₹2,299",
-      image: "/api/placeholder/200/240",
-      why: "Matches your minimal street style, relaxed fit as preferred",
-      rating: 4.5,
-      inStock: true,
-      eta: "2-3 days"
-    },
-    {
-      id: "2", 
-      name: "Oversized Cotton Tee",
-      price: "₹899",
-      image: "/api/placeholder/200/240",
-      why: "Perfect oversized fit, neutral color, quality cotton",
-      rating: 4.7,
-      inStock: true,
-      eta: "2-3 days"
-    },
-    {
-      id: "3",
-      name: "Minimalist Sneakers", 
-      price: "₹3,199",
-      image: "/api/placeholder/200/240",
-      why: "Clean design, sustainable materials, all-day comfort",
-      rating: 4.3,
-      inStock: true,
-      eta: "3-4 days"
-    }
-  ];
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -100,22 +79,42 @@ const AssistantChat = ({ onBack }: AssistantChatProps) => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput("");
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-with-gemini', {
+        body: {
+          message: currentInput,
+          products: allProducts.slice(0, 10) // Send subset for context
+        }
+      });
+
+      if (error) throw error;
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "assistant",
-        content: "Based on your preferences, here are some great options that match your style:",
-        products: mockProducts,
+        content: data.content,
+        products: data.products,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "assistant",
+        content: "I'm having trouble right now. Here are some popular items you might like:",
+        products: allProducts.slice(0, 3),
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const addToCart = (product: Product) => {
