@@ -62,3 +62,4 @@ export const getProductsByCategory = async (category?: string): Promise<Product[
   
   return filteredProducts.map(convertToProduct);
 };
+//
